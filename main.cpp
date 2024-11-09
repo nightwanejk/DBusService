@@ -1,9 +1,27 @@
-#include <iostream>
+#include <QCoreApplication>
+#include <QDBusConnection>
+#include <QDBusError>
+#include <QDebug>
+#include "permissions_service.h"
 
-using namespace std;
-
-int main()
+int main(int argc, char *argv[])
 {
-    cout << "Hello World!" << endl;
-    return 0;
+    QCoreApplication a(argc, argv);
+
+    PermissionService service;
+
+    if (!QDBusConnection::sessionBus().registerObject("/com/system/permissions", &service, QDBusConnection::ExportAllSlots)) {
+        qDebug() << "Failed to register DBus object!";
+        return 1;
+    }
+
+    if (!QDBusConnection::sessionBus().registerService("com.system.permissions")) {
+        qDebug() << "Failed to register DBus service!";
+        return 1;
+    }
+
+    qDebug() << "Service registered";
+    qDebug() << "Object registered";
+
+    return a.exec();
 }

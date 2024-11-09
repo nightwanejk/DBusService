@@ -1,7 +1,11 @@
 TEMPLATE = app
 CONFIG += console c++17
-CONFIG -= app_bundle
-CONFIG -= qt
+QT += core dbus sql
 
 SOURCES += \
-        main.cpp
+        main.cpp \
+        permissions_service.cpp
+
+HEADERS += \
+    common.h \
+    permissions_service.h
