@@ -7,5 +7,4 @@ SOURCES += \
         permissions_service.cpp
 
 HEADERS += \
-    common.h \
     permissions_service.h
