@@ -56,7 +56,7 @@ void PermissionService::RequestPermission(int permissionEnumCode)
     // unique client name
     QString clientName = QDBusConnection::sessionBus().baseService();
 
-    QString execPath = getClientExecutablePath(clientName);  // Получаем путь к исполняемому файлу
+    QString execPath = getClientExecutablePath(clientName); 
     if (execPath.isEmpty()) {
         return;
     }
@@ -64,7 +64,7 @@ void PermissionService::RequestPermission(int permissionEnumCode)
     // add into database
     QSqlQuery query;
     query.prepare("INSERT INTO permissions (execPath, permissionCode) VALUES (:execPath, :permissionCode)");
-    query.bindValue(":execPath", execPath);  // Сохраняем путь
+    query.bindValue(":execPath", execPath);  // save path
     query.bindValue(":permissionCode", permissionEnumCode);
     if (!query.exec()) {
         sendErrorReply("Error saving permission to database: " + query.lastError().text());
