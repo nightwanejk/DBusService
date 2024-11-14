@@ -14,20 +14,33 @@ SQLite
 
 Сборка
 git clone https://github.com/nightwanejk/DBusService.git
+
 cd DBusService
+
 sudo apt update
+
 sudo apt install qt5-qmake qtbase5-dev qtbase5-dev-tools libqt5dbus5 libqt5sql5-sqlite
+
 sudo apt install libdbus-1-dev libsqlite3-dev
+
 Перейдите в директорию проекта и выполните команду для сборки с помощью qmake:
+
 qmake
+
 make
+
 После успешной сборки можно запускать проект
+
 ./DBusService
 
 Использование:
+
 Для использования используйте утилиту d-feet.
+
 sudo apt install d-feet.
+
 Перед запуском необходимо прописать в терминале: dbus-launch и export двух этих параметров, так же стоит сделать в другом окне терминала.
+
 В первом окне терминала запустите приложение ./DBusService, во втором окне терминала запустите утилиту d-feet и в поиске найдите com.system.permissions и com.system.time. Можно использовать эти методы согласно ТЗ.
 
 Скриншоты работы:
