@@ -1,23 +1,17 @@
-#include <QProcess>
-#include <QDebug>
 #include "permissions_service.h"
 
-PermissionService::PermissionService(QObject *parent) : QObject(parent)
-{
-    initializeDatabase();
-}
+#include <QDebug>
+#include <QProcess>
 
-PermissionService::~PermissionService()
-{
-    db.close();
-}
+PermissionService::PermissionService(QObject *parent) : QObject(parent) { initializeDatabase(); }
 
-void PermissionService::initializeDatabase()
-{
+PermissionService::~PermissionService() { db.close(); }
+
+void PermissionService::initializeDatabase() {
     db = QSqlDatabase::addDatabase("QSQLITE");
     db.setDatabaseName("permissions.db");
 
-    if(!db.open()) {
+    if (!db.open()) {
         qDebug() << "Failed to open database:" << db.lastError().text();
     }
 
@@ -25,12 +19,10 @@ void PermissionService::initializeDatabase()
     query.exec("CREATE TABLE IF NOT EXISTS permissions (execPath TEXT, permissionCode INTEGER)");
 }
 
-QString PermissionService::getClientExecutablePath(const QString &clientName)
-{
+QString PermissionService::getClientExecutablePath(const QString &clientName) {
     // using  GetConnectionUnixProcces to get execPath
-    QDBusMessage message = QDBusMessage::createMethodCall(
-        "org.freedesktop.DBus", "/org/freedesktop/DBus",
-        "org.freedesktop.DBus", "GetConnectionUnixProcessID");
+    QDBusMessage message = QDBusMessage::createMethodCall("org.freedesktop.DBus", "/org/freedesktop/DBus",
+                                                          "org.freedesktop.DBus", "GetConnectionUnixProcessID");
     message << clientName;
 
     QDBusReply<uint> reply = QDBusConnection::sessionBus().call(message);
@@ -42,15 +34,14 @@ QString PermissionService::getClientExecutablePath(const QString &clientName)
         QString execPath = QString::fromUtf8(process.readAllStandardOutput()).trimmed();
         return execPath;
     } else {
-        sendErrorReply("Failed to get PID for client " + clientName);
+        sendErrorReply("com.system.permissions.Error", "Failed to get PID for client " + clientName);
         return QString();
     }
 }
 
-void PermissionService::RequestPermission(int permissionEnumCode)
-{
+void PermissionService::RequestPermission(int permissionEnumCode) {
     if (permissionEnumCode != static_cast<int>(Permissions::SystemTime)) {
-        sendErrorReply("Invalid permission code");
+        sendErrorReply("com.system.permissions.Error", "Invalid permission code");
     }
 
     // unique client name
@@ -67,14 +58,14 @@ void PermissionService::RequestPermission(int permissionEnumCode)
     query.bindValue(":execPath", execPath);  // save path
     query.bindValue(":permissionCode", permissionEnumCode);
     if (!query.exec()) {
-        sendErrorReply("Error saving permission to database: " + query.lastError().text());
+        sendErrorReply("com.system.permissions.Error",
+                       "Error saving permission to database: " + query.lastError().text());
     }
 }
 
-bool PermissionService::CheckApplicationHasPermission(const QString &applicationExecPath, int permissionEnumCode)
-{
+bool PermissionService::CheckApplicationHasPermission(const QString &applicationExecPath, int permissionEnumCode) {
     if (permissionEnumCode != static_cast<int>(Permissions::SystemTime)) {
-        sendErrorReply("Invalid permission code");
+        sendErrorReply("com.system.permissions.Error", "Invalid permission code");
         return false;
     }
 
@@ -87,27 +78,16 @@ bool PermissionService::CheckApplicationHasPermission(const QString &application
         return true;
     }
 
-    sendErrorReply("Permission not found for the application: " + applicationExecPath);
+    sendErrorReply("com.system.permissions.Error", "Permission not found for the application: " + applicationExecPath);
     return false;
 }
 
-void PermissionService::sendErrorReply(const QString &message)
-{
+void PermissionService::sendErrorReply(const QString &errorName, const QString &message) {
     qDebug() << "Error:" << message;
-    QDBusMessage errorMessage = QDBusMessage::createError(
-        "com.system.permissions.Error",
-        message
-        );
-
-    QDBusConnection::sessionBus().send(errorMessage);
+    QDBusMessage errorMessage = QDBusMessage::createError(errorName, message);
+    if (errorMessage.type() == QDBusMessage::ErrorMessage) {
+        QDBusConnection::sessionBus().send(errorMessage);
+    } else {
+        qDebug() << "Invalid error message.";
+    }
 }
-
-
-
-
-
-
-
-
-
-
